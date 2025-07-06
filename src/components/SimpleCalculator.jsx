@@ -1,49 +1,105 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./SimpleCalculator.css";
 
 export default function SimpleCalculator() {
   const [input, setInput] = useState("");
+  const [error, setError] = useState(false);
 
   const handleClick = (value) => {
     if (value === "AC") {
       setInput("");
-    } else if (value === "=") {
+      setError(false);
+      return;
+    }
+
+    if (value === "=") {
       try {
-        setInput(eval(input).toString());
+        const result = Function(`return (${input})`)();
+        setInput(result.toString());
+        setError(false);
       } catch {
         setInput("Error");
+        setError(true);
       }
+      return;
+    }
+
+    if (error) {
+      setInput(value);
+      setError(false);
     } else {
       setInput((prev) => prev + value);
     }
   };
 
   const buttons = [
-    "7", "8", "9", "/",
-    "4", "5", "6", "*",
-    "1", "2", "3", "+",
-    "0", ".", "AC", "-",
+    { label: "7", type: "number" },
+    { label: "8", type: "number" },
+    { label: "9", type: "number" },
+    { label: "/", type: "operator" },
+    { label: "4", type: "number" },
+    { label: "5", type: "number" },
+    { label: "6", type: "number" },
+    { label: "*", type: "operator" },
+    { label: "1", type: "number" },
+    { label: "2", type: "number" },
+    { label: "3", type: "number" },
+    { label: "+", type: "operator" },
+    { label: "0", type: "number" },
+    { label: ".", type: "number" },
+    { label: "AC", type: "action" },
+    { label: "-", type: "operator" },
   ];
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const key = e.key;
+
+      if (/^[0-9]$/.test(key) || key === ".") {
+        handleClick(key);
+      } else if (["+", "-", "*", "/"].includes(key)) {
+        handleClick(key);
+      } else if (key === "Enter" || key === "=") {
+        handleClick("=");
+      } else if (key === "Escape" || key === "c") {
+        handleClick("AC");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [error, input]);
 
   return (
     <div className="calculator">
-      <div className="display">{input || "0"}</div>
+      <div className={`display ${error ? "error" : ""}`} aria-label="Display">
+        {input || "0"}
+      </div>
+
       <div className="grid">
-        {buttons.map((btn) => (
+        {buttons.map(({ label, type }) => (
           <button
-            key={btn}
-            className={`btn ${
-              isNaN(btn) && btn !== "." ? "operator" : "number"
-            }`}
-            onClick={() => handleClick(btn)}
+            key={label}
+            className={`btn ${type}`}
+            onClick={() => handleClick(label)}
+            aria-label={`Button ${label}`}
           >
-            {btn}
+            {label}
           </button>
         ))}
       </div>
-      <button className="enter-btn" onClick={() => handleClick("=")}>
+
+      <button
+        className="btn enter-btn"
+        onClick={() => handleClick("=")}
+        aria-label="Calculate result"
+      >
         ENTER
       </button>
     </div>
   );
 }
+
+
