@@ -12,6 +12,16 @@ export default function SimpleCalculator() {
       return;
     }
 
+    if (value === "⌫") {
+      if (error) {
+        setInput("");
+        setError(false);
+      } else {
+        setInput((prev) => prev.slice(0, -1));
+      }
+      return;
+    }
+
     if (value === "=") {
       try {
         const result = Function(`return (${input})`)();
@@ -61,8 +71,10 @@ export default function SimpleCalculator() {
         handleClick(key);
       } else if (key === "Enter" || key === "=") {
         handleClick("=");
-      } else if (key === "Escape" || key === "c") {
+      } else if (key === "Escape" || key.toLowerCase() === "c") {
         handleClick("AC");
+      } else if (key === "Backspace") {
+        handleClick("⌫");
       }
     };
 
@@ -91,15 +103,22 @@ export default function SimpleCalculator() {
         ))}
       </div>
 
-      <button
-        className="btn enter-btn"
-        onClick={() => handleClick("=")}
-        aria-label="Calculate result"
-      >
-        ENTER
-      </button>
+      <div className="bottom-buttons">
+        <button
+          className="btn enter-btn"
+          onClick={() => handleClick("=")}
+          aria-label="Calculate result"
+        >
+          ENTER
+        </button>
+        <button
+          className="btn backspace-btn"
+          onClick={() => handleClick("⌫")}
+          aria-label="Backspace"
+        >
+          ⌫
+        </button>
+      </div>
     </div>
   );
 }
-
-
